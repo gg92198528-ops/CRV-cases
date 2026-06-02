@@ -35,14 +35,14 @@ class RiskModelVisualizer(tk.Tk):
 
         self.car_length, self.car_width = 4.74, 2.02
         self.Q_veh, self.Q_ped, self.epsilon_R, self.delta_d = 2.0, 1.0, 1.0, 0.1
-        self.color_cre, self.color_ttc, self.color_DSF = '#D9534F', '#0275D8', '#5CB85C'
+        self.color_CRV, self.color_ttc, self.color_DSF = '#D9534F', '#0275D8', '#5CB85C'
         self.color_traj, self.color_vehicle_fill, self.color_ped_fill = 'black', '#808080', '#9400D3'
-        self.style_cre, self.style_ttc, self.style_DSF = '-', ':', '--'
+        self.style_CRV, self.style_ttc, self.style_DSF = '-', ':', '--'
         self.style_car_traj, self.style_ped_traj = '-', '--'
 
-        self.create_widgets()
+        self.CRVate_widgets()
 
-    def create_widgets(self):
+    def CRVate_widgets(self):
         main_frame = ttk.Frame(self)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         main_frame.grid_columnconfigure(0, weight=0)
@@ -80,9 +80,9 @@ class RiskModelVisualizer(tk.Tk):
 
         canvas_container = ttk.Frame(main_frame)
         canvas_container.grid(row=0, column=1, sticky="nsew")
-        self.create_matplotlib_canvas(canvas_container)
+        self.CRVate_matplotlib_canvas(canvas_container)
 
-    def create_matplotlib_canvas(self, parent):
+    def CRVate_matplotlib_canvas(self, parent):
         self.fig = plt.Figure(figsize=(self.fig_width, self.fig_height), dpi=100)
         plt.rcParams['font.family'] = 'Arial'
         plt.rcParams['font.size'] = self.tick_fontsize
@@ -172,20 +172,20 @@ class RiskModelVisualizer(tk.Tk):
         self.min_ttc = {'value': self.ttc_values[min_ttc_idx] if min_ttc_idx != -1 else 0,
                         'time': self.df['t'].iloc[min_ttc_idx] if min_ttc_idx != -1 else -1}
 
-        min_cre_idx = np.nanargmin(self.cre_magnitudes) if ~np.all(np.isnan(self.cre_magnitudes)) else -1
-        self.min_cre_mag = {'value': self.cre_magnitudes[min_cre_idx] if min_cre_idx != -1 else 0,
-                            'time': self.df['t'].iloc[min_cre_idx] if min_cre_idx != -1 else -1}
+        min_CRV_idx = np.nanargmin(self.CRV_magnitudes) if ~np.all(np.isnan(self.CRV_magnitudes)) else -1
+        self.min_CRV_mag = {'value': self.CRV_magnitudes[min_CRV_idx] if min_CRV_idx != -1 else 0,
+                            'time': self.df['t'].iloc[min_CRV_idx] if min_CRV_idx != -1 else -1}
 
         max_dsf_idx = np.nanargmax(self.DSF_values) if ~np.all(np.isnan(self.DSF_values)) else -1
         self.max_DSF = {'value': self.DSF_values[max_dsf_idx] if max_dsf_idx != -1 else 0,
                         'time': self.df['t'].iloc[max_dsf_idx] if max_dsf_idx != -1 else -1}
         
         min_ttc_val = self.min_ttc['value']; min_ttc_time = self.min_ttc['time']
-        min_cre_mag_val = self.min_cre_mag['value']; min_cre_mag_time = self.min_cre_mag['time']
+        min_CRV_mag_val = self.min_CRV_mag['value']; min_CRV_mag_time = self.min_CRV_mag['time']
         max_DSF_val = self.max_DSF['value']; max_DSF_time = self.max_DSF['time']
         
         results_text = (f"Min TTC: {min_ttc_val:.3f}s (at {min_ttc_time:.2f}s)\n"
-                        f"Min CRE: {min_cre_mag_val:.3f}s (at {min_cre_mag_time:.2f}s)\n"
+                        f"Min CRV: {min_CRV_mag_val:.3f}s (at {min_CRV_mag_time:.2f}s)\n"
                         f"Max DSF: {max_DSF_val:.3f} (at {max_DSF_time:.2f}s)")
         self.results_label.config(text=results_text)
     
@@ -193,7 +193,7 @@ class RiskModelVisualizer(tk.Tk):
         if self.df is None: return
         if 't' in self.df.columns: self.df = self.df.sort_values(by='t', ascending=True).reset_index(drop=True)
         
-        self.cre_magnitudes, self.cre_vectors, self.DSF_values, self.DSF_plot_values = [], [], [], []
+        self.CRV_magnitudes, self.CRV_vectors, self.DSF_values, self.DSF_plot_values = [], [], [], []
         
         dt = self.df['t'].diff().fillna(method='bfill').fillna(method='ffill')
 
@@ -259,20 +259,20 @@ class RiskModelVisualizer(tk.Tk):
             for p in np.linspace(-self.car_width/2, self.car_width/2, 8): grid_points.append(car_pos + np.array([p, self.car_length/2])); grid_points.append(car_pos + np.array([p, -self.car_length/2]))
             for p in np.linspace(-self.car_length/2, self.car_length/2, 10): grid_points.append(car_pos + np.array([-self.car_width/2, p])); grid_points.append(car_pos + np.array([self.car_width/2, p]))
 
-            total_cre_vector, count = np.array([0.0, 0.0]), 0
-            v_rel_cre = v_ped - v_car
+            total_CRV_vector, count = np.array([0.0, 0.0]), 0
+            v_rel_CRV = v_ped - v_car
             for grid_pos in grid_points:
-                p_rel = ped_pos - grid_pos; p_rel_mag = np.linalg.norm(p_rel); v_rel_mag = np.linalg.norm(v_rel_cre)
+                p_rel = ped_pos - grid_pos; p_rel_mag = np.linalg.norm(p_rel); v_rel_mag = np.linalg.norm(v_rel_CRV)
                 if p_rel_mag > 1e-6 and v_rel_mag > 1e-6:
-                    cos_theta = np.dot(p_rel, v_rel_cre) / (p_rel_mag * v_rel_mag)
+                    cos_theta = np.dot(p_rel, v_rel_CRV) / (p_rel_mag * v_rel_mag)
                     if abs(cos_theta) > 1e-6:
-                        pttc_for_cre = min(abs(p_rel_mag / (v_rel_mag * abs(cos_theta))), 15.0)
-                        if pttc_for_cre < 0.1: pttc_for_cre = 0.1
-                        total_cre_vector += (pttc_for_cre * (p_rel / p_rel_mag)); count += 1
-            cre_vector = total_cre_vector / count if count > 0 else np.array([0., 15.0])
-            cre_magnitude = np.linalg.norm(cre_vector)
-            self.cre_magnitudes.append(cre_magnitude)
-            self.cre_vectors.append(cre_vector)
+                        pttc_for_CRV = min(abs(p_rel_mag / (v_rel_mag * abs(cos_theta))), 15.0)
+                        if pttc_for_CRV < 0.1: pttc_for_CRV = 0.1
+                        total_CRV_vector += (pttc_for_CRV * (p_rel / p_rel_mag)); count += 1
+            CRV_vector = total_CRV_vector / count if count > 0 else np.array([0., 15.0])
+            CRV_magnitude = np.linalg.norm(CRV_vector)
+            self.CRV_magnitudes.append(CRV_magnitude)
+            self.CRV_vectors.append(CRV_vector)
 
             v_ij = v_ped - v_car
             v_ij_mag = np.linalg.norm(v_ij)
@@ -299,7 +299,7 @@ class RiskModelVisualizer(tk.Tk):
         if conflict_idx < len(self.ttc_values):
             self.ttc_values[conflict_idx:] = np.nan
 
-        self.cre_magnitudes, self.DSF_values = np.array(self.cre_magnitudes), np.array(self.DSF_values)
+        self.CRV_magnitudes, self.DSF_values = np.array(self.CRV_magnitudes), np.array(self.DSF_values)
         self.DSF_plot_values = np.array(self.DSF_plot_values)
         
         def smooth_data_advanced(data):
@@ -321,7 +321,7 @@ class RiskModelVisualizer(tk.Tk):
             return final_smoothed
         
         self.ttc_smooth = smooth_data_advanced(self.ttc_values)
-        self.cre_smooth = smooth_data_advanced(self.cre_magnitudes)
+        self.CRV_smooth = smooth_data_advanced(self.CRV_magnitudes)
         self.DSF_smooth = smooth_data_advanced(self.DSF_plot_values)
     
     def setup_figure_for_animation(self):
@@ -335,8 +335,8 @@ class RiskModelVisualizer(tk.Tk):
         self.ped_point, = self.ax_anim.plot([], [], 'o', color=self.color_ped_fill, markersize=8, label='Pedestrian')
         self.car_trail, = self.ax_anim.plot([], [], color=self.color_traj, linestyle=self.style_car_traj, lw=self.traj_linewidth, alpha=0.6, label='Car Path')
         self.ped_trail, = self.ax_anim.plot([], [], color=self.color_traj, linestyle=self.style_ped_traj, lw=self.traj_linewidth, alpha=0.8, label='Ped Path')
-        self.cre_arrow = self.ax_anim.quiver([], [], [], [], color=self.color_cre, scale=10, units='inches', width=0.04, label='CRE')
-        self.cre_text = self.ax_anim.text(0, 0, '', fontsize=9, color=self.color_cre, ha='center', va='bottom', weight='bold')
+        self.CRV_arrow = self.ax_anim.quiver([], [], [], [], color=self.color_CRV, scale=10, units='inches', width=0.04, label='CRV')
+        self.CRV_text = self.ax_anim.text(0, 0, '', fontsize=9, color=self.color_CRV, ha='center', va='bottom', weight='bold')
         self.info_text = self.ax_anim.text(0.02, 1.02, '', transform=self.ax_anim.transAxes, fontsize=self.tick_fontsize)
         self.ax_anim.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=3, frameon=False, fontsize=self.tick_fontsize-2)
         self.ax_anim.grid(False)
@@ -344,14 +344,14 @@ class RiskModelVisualizer(tk.Tk):
         
         self.ax_graph.set_title("Risk Models vs. Longitudinal Distance", fontsize=self.tick_fontsize)
         self.ax_graph.set_xlabel("Longitudinal Distance (m)")
-        self.ax_graph.set_ylabel("CRE/TTC Value", color=self.color_cre)
+        self.ax_graph.set_ylabel("CRV/TTC Value", color=self.color_CRV)
         self.ax_DSF = self.ax_graph.twinx()
         self.ax_DSF.set_ylabel("DSF (exp-decay)", color=self.color_DSF)
         self.ax_DSF.tick_params(axis='y', labelcolor=self.color_DSF, labelsize=self.tick_fontsize)
-        self.ax_graph.tick_params(axis='y', labelcolor=self.color_cre, labelsize=self.tick_fontsize)
+        self.ax_graph.tick_params(axis='y', labelcolor=self.color_CRV, labelsize=self.tick_fontsize)
         self.ax_graph.tick_params(axis='x', labelsize=self.tick_fontsize)
         
-        self.cre_line, = self.ax_graph.plot([], [], color=self.color_cre, linestyle=self.style_cre, label='CRE (s)', lw=self.linewidth)
+        self.CRV_line, = self.ax_graph.plot([], [], color=self.color_CRV, linestyle=self.style_CRV, label='CRV (s)', lw=self.linewidth)
         self.ttc_line, = self.ax_graph.plot([], [], color=self.color_ttc, linestyle=self.style_ttc, label='TTC (s)', lw=self.linewidth)
         self.DSF_line, = self.ax_DSF.plot([], [], color=self.color_DSF, linestyle=self.style_DSF, label='DSF', lw=self.linewidth)
         self.progress_line = self.ax_graph.axvline(x=self.df['plot_distance'].iloc[0], color='gray', linestyle=':', lw=1.5)
@@ -370,9 +370,9 @@ class RiskModelVisualizer(tk.Tk):
         
         self.ax_graph.set_xlim(self.df['plot_distance'].max(), self.df['plot_distance'].min())
         with np.errstate(invalid='ignore'):
-            all_finite_ttc_cre = np.concatenate([self.ttc_smooth, self.cre_smooth])
-            all_finite_ttc_cre = all_finite_ttc_cre[~np.isnan(all_finite_ttc_cre)]
-            self.ax_graph.set_ylim(0, np.nanmax(all_finite_ttc_cre) * 1.1 if len(all_finite_ttc_cre) > 0 else 15)
+            all_finite_ttc_CRV = np.concatenate([self.ttc_smooth, self.CRV_smooth])
+            all_finite_ttc_CRV = all_finite_ttc_CRV[~np.isnan(all_finite_ttc_CRV)]
+            self.ax_graph.set_ylim(0, np.nanmax(all_finite_ttc_CRV) * 1.1 if len(all_finite_ttc_CRV) > 0 else 15)
             self.ax_DSF.set_ylim(0, 1.1)
 
     def setup_animation_and_run(self):
@@ -399,12 +399,12 @@ class RiskModelVisualizer(tk.Tk):
         encounter_dist = 0
         arrival_line = self.ax_graph.axvline(x=encounter_dist, color='purple', linestyle='--', lw=2, label=f'Conflict Point ({encounter_dist:.1f}m)')
         
-        self.cre_line.set_data(self.df['plot_distance'], self.cre_smooth)
+        self.CRV_line.set_data(self.df['plot_distance'], self.CRV_smooth)
         self.ttc_line.set_data(self.df['plot_distance'], self.ttc_smooth)
         self.DSF_line.set_data(self.df['plot_distance'], self.DSF_smooth)
         
         if self.show_legend:
-            self.legend1 = self.ax_graph.legend(handles=[self.cre_line, self.ttc_line, arrival_line], loc='upper left')
+            self.legend1 = self.ax_graph.legend(handles=[self.CRV_line, self.ttc_line, arrival_line], loc='upper left')
             self.ax_graph.add_artist(self.legend1)
             self.legend2 = self.ax_DSF.legend(handles=[self.DSF_line], loc='upper right')
         
@@ -416,19 +416,19 @@ class RiskModelVisualizer(tk.Tk):
         self.car_rect.set_transform(transforms.Affine2D().rotate(angle_rad) + transforms.Affine2D().translate(car_x, car_y) + self.ax_anim.transData)
         self.ped_point.set_data([ped_x], [ped_y])
         self.car_trail.set_data(self.df['plot_car_x'][:i+1], self.df['car_y'][:i+1]); self.ped_trail.set_data(self.df['plot_ped_x'][:i+1], self.df['ped_y'][:i+1])
-        cre_vec = self.cre_vectors[i]; cre_mag = self.cre_magnitudes[i]
+        CRV_vec = self.CRV_vectors[i]; CRV_mag = self.CRV_magnitudes[i]
         speed = np.linalg.norm([self.df['car_vx'][i], self.df['car_vy'][i]])
-        if not np.isnan(cre_mag) and cre_mag > 1e-6 and speed > 0.1:
-            self.cre_arrow.set_offsets((car_x, car_y)); self.cre_arrow.set_UVC(-cre_vec[0], cre_vec[1])
-            self.cre_text.set_position((car_x - cre_vec[0]*1.2, car_y + cre_vec[1]*1.2)); self.cre_text.set_text(f"{cre_mag:.2f}")
-            self.cre_arrow.set_visible(True); self.cre_text.set_visible(True)
+        if not np.isnan(CRV_mag) and CRV_mag > 1e-6 and speed > 0.1:
+            self.CRV_arrow.set_offsets((car_x, car_y)); self.CRV_arrow.set_UVC(-CRV_vec[0], CRV_vec[1])
+            self.CRV_text.set_position((car_x - CRV_vec[0]*1.2, car_y + CRV_vec[1]*1.2)); self.CRV_text.set_text(f"{CRV_mag:.2f}")
+            self.CRV_arrow.set_visible(True); self.CRV_text.set_visible(True)
         else:
-            self.cre_arrow.set_visible(False); self.cre_text.set_visible(False)
-        ttc_display = f"{self.ttc_values[i]:.2f}s" if not np.isnan(self.ttc_values[i]) else "N/A"; cre_display = f"{self.cre_magnitudes[i]:.2f}s" if not np.isnan(self.cre_magnitudes[i]) else "N/A"; DSF_display = f"{self.DSF_values[i]:.3f}" if not np.isnan(self.DSF_values[i]) else "N/A"
-        self.info_text.set_text(f'Time: {self.df["t"][i]:.2f}s | TTC: {ttc_display} | CRE: {cre_display} | DSF: {DSF_display}')
+            self.CRV_arrow.set_visible(False); self.CRV_text.set_visible(False)
+        ttc_display = f"{self.ttc_values[i]:.2f}s" if not np.isnan(self.ttc_values[i]) else "N/A"; CRV_display = f"{self.CRV_magnitudes[i]:.2f}s" if not np.isnan(self.CRV_magnitudes[i]) else "N/A"; DSF_display = f"{self.DSF_values[i]:.3f}" if not np.isnan(self.DSF_values[i]) else "N/A"
+        self.info_text.set_text(f'Time: {self.df["t"][i]:.2f}s | TTC: {ttc_display} | CRV: {CRV_display} | DSF: {DSF_display}')
         
         dist_data = self.df['plot_distance'][:i+1]
-        self.cre_line.set_data(dist_data, self.cre_smooth[:i+1])
+        self.CRV_line.set_data(dist_data, self.CRV_smooth[:i+1])
         self.ttc_line.set_data(dist_data, self.ttc_smooth[:i+1])
         self.DSF_line.set_data(dist_data, self.DSF_smooth[:i+1])
         
@@ -440,8 +440,8 @@ class RiskModelVisualizer(tk.Tk):
             self.status_label.config(text="Animation finished.")
             if hasattr(self, 'pause_button'): self.pause_button.config(state=tk.DISABLED)
         
-        return (self.car_rect, self.ped_point, self.car_trail, self.ped_trail, self.cre_arrow, self.info_text, 
-                self.cre_line, self.ttc_line, self.DSF_line, self.progress_line)
+        return (self.car_rect, self.ped_point, self.car_trail, self.ped_trail, self.CRV_arrow, self.info_text, 
+                self.CRV_line, self.ttc_line, self.DSF_line, self.progress_line)
 
 if __name__ == "__main__":
     app = RiskModelVisualizer()
